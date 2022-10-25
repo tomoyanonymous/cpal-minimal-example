@@ -52,7 +52,7 @@ where
     FIO: FnMut(&[S], &mut [S], usize, usize, usize) + Send + 'static,
 {
     let channels_max = std::cmp::max(input_channels, output_channels);
-    let rbuf = ringbuf::SharedRb::<S, Vec<_>>::new(latency_samples * 2 * channels_max);
+    let rbuf = ringbuf::HeapRb::<S>::new(latency_samples * 2 * channels_max);
     let (mut producer, mut consumer) = rbuf.split();
 
     //init cpal.
@@ -63,11 +63,11 @@ where
     let (istream, idevice) = {
         let ifn = move |data: &[S], _: &cpal::InputCallbackInfo| {
             let pushed_samples = producer.push_slice(data);
-            println!(
-                "Producer: pushed_samples {:?},data.len(): {:?}",
-                pushed_samples,
-                data.len()
-            );
+            // println!(
+            //     "Producer: pushed_samples {:?},data.len(): {:?}",
+            //     pushed_samples,
+            //     data.len()
+            // );
             if pushed_samples < data.len() {
                 eprintln!(
                     "Audio buffer overflow. {} samples were not pushed.",
@@ -96,11 +96,11 @@ where
         let ofn = move |data: &mut [S], _: &cpal::OutputCallbackInfo| {
             //apply process function
             let consumed_samples = consumer.pop_slice(tmp_array.as_mut_slice());
-            println!(
-                "Consumer:  pulled_samples {:?},data.len(): {:?}",
-                consumed_samples,
-                data.len()
-            );
+            // println!(
+            //     "Consumer:  pulled_samples {:?},data.len(): {:?}",
+            //     consumed_samples,
+            //     data.len()
+            // );
             f(
                 tmp_array.as_slice(),
                 data,
