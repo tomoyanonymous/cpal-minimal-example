@@ -8,3 +8,8 @@ edition = "2021"
 [dependencies]
 cpal = "*"
 rand = "*"
+ringbuf = "*"
+
+[[bin]]
+name = "ioclosure"
+path = "src/ioclosure/main.rs"
